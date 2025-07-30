@@ -1,0 +1,16 @@
+# Netlify Configuration
+[build]
+  command = "cd client && npm install && npm run build"
+  functions = "server/functions"
+  publish = "client/dist"
+
+# Redirects for API
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+# Environment Variables
+[context.production.environment]
+  VITE_API_URL = "/api"

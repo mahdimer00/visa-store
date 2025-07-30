@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <!-- Meta Tags -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visa Store</title>
+  
+  <!-- Styles -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React and Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.18.9/babel.min.js"></script>
+</head>
+<body>
+  <!-- Root Element for React -->
+  <div id="root"></div>
+  
+  <!-- Main Application Script -->
+  <script type="module" src="/src/main.jsx"></script>
+  
+  <!-- React Refresh for Development -->
+  <script type="module">
+    import RefreshRuntime from '/@react-refresh';
+    RefreshRuntime.injectIntoGlobalHook(window);
+    window.$RefreshReg$ = () => {};
+    window.$RefreshSig$ = () => (type) => type;
+    window.__vite_plugin_react_preamble_installed__ = true;
+  </script>
+</body>
+</html>

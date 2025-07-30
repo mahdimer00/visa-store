@@ -1,0 +1,585 @@
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\postcss.config.js ===
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\tailwind.config.js ===
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Noto Sans Arabic', 'sans-serif'],
+      },
+      colors: {
+        primary: '#1D4ED8', // Blue for professional look
+        secondary: '#10B981', // Green for accents
+        accent: '#EF4444', // Red for errors
+      },
+    },
+  },
+  plugins: [],
+};
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\vite.config.js ===
+// C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5174, // Change to a different port, e.g., 5174
+    open: true,
+    host: '0.0.0.0',
+  },
+  build: {
+    outDir: 'dist',
+  },
+  root: '.',
+  publicDir: 'public',
+});
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\public\index.html ===
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visa Store</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+  <!-- Add React refresh preamble for development -->
+  <script type="module">
+    import RefreshRuntime from '/@react-refresh';
+    RefreshRuntime.injectIntoGlobalHook(window);
+    window.$RefreshReg$ = () => {};
+    window.$RefreshSig$ = () => (type) => type;
+    window.__vite_plugin_react_preamble_installed__ = true;
+  </script>
+</body>
+</html>
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\App.jsx ===
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Admin from './pages/Admin';
+import Track from './pages/Track';
+
+function App() {
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-50 flex flex-col font-sans antialiased">
+        <Navbar />
+        <main className="flex-grow container mx-auto px-4 py-8 md:px-6 lg:px-8">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/track" element={<Track />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\index.css ===
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Noto Sans Arabic', sans-serif;
+}
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\main.jsx ===
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\components\Footer.jsx ===
+function Footer() {
+  return (
+    <footer className="bg-gray-900 text-white py-8 px-4">
+      <div className="container mx-auto text-center md:flex md:justify-between md:items-center">
+        <p className="mb-4 md:mb-0 text-lg">Visa Store &copy; 2025 - متخصصون في صيانة وفلاش الهواتف</p>
+        <div className="flex justify-center space-x-6 rtl:space-x-reverse">
+          <a href="https://facebook.com/visastore" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">فيسبوك</a>
+          <a href="https://instagram.com/visastore" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">إنستغرام</a>
+          <a href="https://twitter.com/visastore" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">تويتر</a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export default Footer;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\components\MyPhones.jsx ===
+import { useState } from 'react';
+
+function MyPhones() {
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [tickets, setTickets] = useState([]);
+  const [error, setError] = useState(null);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setTickets([]);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tickets?customerPhone=${customerPhone}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (data.length === 0) {
+        setError('لا توجد تذاكر مرتبطة برقم الهاتف هذا.');
+      } else {
+        setTickets(data);
+      }
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+      setError('فشل العثور على التذاكر. تحقق من رقم الهاتف أو اتصال الخادم.');
+    }
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-center text-primary">تتبع هواتفي</h2>
+      {error && <p className="text-accent mb-4 text-center">{error}</p>}
+      <form onSubmit={handleSearch} className="mb-6 flex flex-col md:flex-row gap-4">
+        <input
+          type="text"
+          value={customerPhone}
+          onChange={(e) => setCustomerPhone(e.target.value)}
+          placeholder="أدخل رقم هاتفك (مثال: 0501234567)"
+          className="flex-grow p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+        <button type="submit" className="bg-primary text-white p-3 rounded-md hover:bg-blue-700 transition-colors">
+          بحث
+        </button>
+      </form>
+      {tickets.length > 0 && (
+        <div className="space-y-6">
+          {tickets.map((ticket) => (
+            <div key={ticket.ticketId} className="border border-gray-200 p-4 rounded-md shadow-sm">
+              <p className="font-semibold">رقم التذكرة: {ticket.ticketId}</p>
+              <p>نوع الهاتف: {ticket.phoneType === 'android' ? 'أندرويد' : 'آيفون'}</p>
+              <p>اسم الهاتف: {ticket.phoneModel}</p>
+              <p>اسم العميل: {ticket.customerName}</p>
+              <p>رقم الهاتف: {ticket.customerPhone}</p>
+              <p>المشكلة: {ticket.issue}</p>
+              <p className="font-semibold">الحالة: {ticket.status}</p>
+              {ticket.status === 'خطأ' && <p>سبب الخطأ: {ticket.errorReason}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default MyPhones;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\components\Navbar.jsx ===
+import { Link } from 'react-router-dom';
+
+function Navbar() {
+  return (
+    <nav className="bg-primary text-white py-4 px-4 shadow-lg">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link to="/" className="text-3xl font-bold tracking-wide">Visa Store</Link>
+        <div className="space-x-6 rtl:space-x-reverse text-lg">
+          <Link to="/" className="hover:underline transition">الرئيسية</Link>
+          <Link to="/track" className="hover:underline transition">هواتفي</Link>
+          <Link to="/admin" className="hover:underline transition">الإدارة</Link>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+export default Navbar;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\components\TicketForm.jsx ===
+import { useState } from 'react';
+import QRCode from 'qrcode.react';
+
+function TicketForm() {
+  const [formData, setFormData] = useState({
+    phoneType: 'android',
+    phoneModel: '',
+    customerName: '',
+    customerPhone: '',
+    issue: '',
+    status: 'لم يتم الصيانة بعد',
+    errorReason: ''
+  });
+  const [ticketId, setTicketId] = useState(null);
+  const [qrCode, setQrCode] = useState('');
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tickets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      setTicketId(data.ticketId);
+      setQrCode(`${window.location.origin}/track?ticketId=${data.ticketId}`);
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      setError('فشل إنشاء التذكرة. تحقق من اتصال الخادم.');
+    }
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>طباعة تذكرة الصيانة</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; direction: rtl; }
+            .ticket { margin: 20px auto; padding: 20px; border: 1px solid #000; max-width: 300px; }
+            .qr-code { margin: 10px 0; }
+            h2 { font-size: 1.2rem; }
+            p { font-size: 0.9rem; margin: 5px 0; }
+          </style>
+        </head>
+        <body onload="window.print()">
+          <div class="ticket">
+            <h2>تذكرة صيانة - Visa Store</h2>
+            <p>رقم التذكرة: ${ticketId}</p>
+            <p>نوع الهاتف: ${formData.phoneType === 'android' ? 'أندرويد' : 'آيفون'}</p>
+            <p>اسم الهاتف: ${formData.phoneModel}</p>
+            <p>اسم العميل: ${formData.customerName}</p>
+            <p>رقم الهاتف: ${formData.customerPhone}</p>
+            <p>المشكلة: ${formData.issue}</p>
+            <div class="qr-code">
+              <img src="${document.getElementById('qr-code').toDataURL()}" alt="QR Code" />
+            </div>
+            <p>تذكرة العميل</p>
+          </div>
+          <div class="ticket">
+            <h2>تذكرة صيانة - Visa Store (للصق على الهاتف)</h2>
+            <p>رقم التذكرة: ${ticketId}</p>
+            <p>اسم العميل: ${formData.customerName}</p>
+            <div class="qr-code">
+              <img src="${document.getElementById('qr-code').toDataURL()}" alt="QR Code" />
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-6 text-primary">إنشاء تذكرة صيانة</h2>
+      {error && <p className="text-accent mb-4">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">نوع الهاتف</label>
+          <select
+            value={formData.phoneType}
+            onChange={(e) => setFormData({ ...formData, phoneType: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="android">أندرويد</option>
+            <option value="iphone">آيفون</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">اسم الهاتف</label>
+          <input
+            type="text"
+            value={formData.phoneModel}
+            onChange={(e) => setFormData({ ...formData, phoneModel: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">اسم العميل</label>
+          <input
+            type="text"
+            value={formData.customerName}
+            onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">رقم الهاتف</label>
+          <input
+            type="text"
+            value={formData.customerPhone}
+            onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">المشكلة</label>
+          <textarea
+            value={formData.issue}
+            onChange={(e) => setFormData({ ...formData, issue: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            required
+          ></textarea>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">حالة الصيانة</label>
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="لم يتم الصيانة بعد">لم يتم الصيانة بعد</option>
+            <option value="قيد الصيانة">قيد الصيانة</option>
+            <option value="اكتملت الصيانة">اكتملت الصيانة</option>
+            <option value="خطأ">خطأ</option>
+          </select>
+        </div>
+        {formData.status === 'خطأ' && (
+          <div>
+            <label className="block text-sm font-medium mb-1">سبب الخطأ</label>
+            <input
+              type="text"
+              value={formData.errorReason}
+              onChange={(e) => setFormData({ ...formData, errorReason: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+        )}
+        <button type="submit" className="w-full bg-primary text-white p-3 rounded-md hover:bg-blue-700 transition-colors">
+          إنشاء تذكرة
+        </button>
+      </form>
+      {ticketId && (
+        <div className="mt-6 text-center">
+          <p className="font-semibold mb-2">رقم التذكرة: {ticketId}</p>
+          <div className="mx-auto w-fit">
+            <QRCode id="qr-code" value={qrCode} size={128} />
+          </div>
+          <button
+            onClick={handlePrint}
+            className="mt-4 bg-secondary text-white p-3 rounded-md hover:bg-green-700 transition-colors"
+          >
+            طباعة التذكرة
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default TicketForm;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\components\TicketList.jsx ===
+import { useState, useEffect } from 'react';
+
+function TicketList() {
+  const [tickets, setTickets] = useState([]);
+  const [error, setError] = useState(null);
+  const [editingTicket, setEditingTicket] = useState(null);
+  const [updatedStatus, setUpdatedStatus] = useState('');
+  const [updatedErrorReason, setUpdatedErrorReason] = useState('');
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const fetchTickets = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tickets`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      setTickets(data);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+      setError('فشل تحميل التذاكر. تحقق من اتصال الخادم.');
+    }
+  };
+
+  const handleEdit = (ticket) => {
+    setEditingTicket(ticket.ticketId);
+    setUpdatedStatus(ticket.status);
+    setUpdatedErrorReason(ticket.errorReason);
+  };
+
+  const handleUpdate = async (ticketId) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tickets/${ticketId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: updatedStatus, errorReason: updatedErrorReason }),
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      setEditingTicket(null);
+      fetchTickets(); // Refresh list
+    } catch (error) {
+      console.error('Error updating ticket:', error);
+      setError('فشل تحديث التذكرة.');
+    }
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-lg overflow-x-auto">
+      <h2 className="text-2xl font-bold mb-6 text-primary">قائمة التذاكر</h2>
+      {error && <p className="text-accent mb-4">{error}</p>}
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">رقم التذكرة</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع الهاتف</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم الهاتف</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم العميل</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">رقم الهاتف</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المشكلة</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">سبب الخطأ</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {tickets.map((ticket) => (
+            <tr key={ticket.ticketId}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ticket.ticketId}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.phoneType === 'android' ? 'أندرويد' : 'آيفون'}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.phoneModel}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.customerName}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.customerPhone}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.issue}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {editingTicket === ticket.ticketId ? (
+                  <select
+                    value={updatedStatus}
+                    onChange={(e) => setUpdatedStatus(e.target.value)}
+                    className="p-2 border rounded-md"
+                  >
+                    <option value="لم يتم الصيانة بعد">لم يتم الصيانة بعد</option>
+                    <option value="قيد الصيانة">قيد الصيانة</option>
+                    <option value="اكتملت الصيانة">اكتملت الصيانة</option>
+                    <option value="خطأ">خطأ</option>
+                  </select>
+                ) : (
+                  ticket.status
+                )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {editingTicket === ticket.ticketId && updatedStatus === 'خطأ' ? (
+                  <input
+                    type="text"
+                    value={updatedErrorReason}
+                    onChange={(e) => setUpdatedErrorReason(e.target.value)}
+                    className="p-2 border rounded-md"
+                  />
+                ) : (
+                  ticket.errorReason
+                )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                {editingTicket === ticket.ticketId ? (
+                  <button onClick={() => handleUpdate(ticket.ticketId)} className="text-secondary hover:underline">
+                    حفظ
+                  </button>
+                ) : (
+                  <button onClick={() => handleEdit(ticket)} className="text-primary hover:underline">
+                    تعديل
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default TicketList;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\pages\Admin.jsx ===
+import TicketForm from '../components/TicketForm';
+import TicketList from '../components/TicketList';
+
+function Admin() {
+  return (
+    <div className="space-y-12">
+      <h1 className="text-4xl font-bold mb-8 text-center text-primary">لوحة الإدارة</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <TicketForm />
+        <TicketList />
+      </div>
+    </div>
+  );
+}
+
+export default Admin;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\pages\Home.jsx ===
+function Home() {
+  return (
+    <div className="text-center space-y-12">
+      <h1 className="text-5xl font-bold mb-6 text-primary">مرحبًا بكم في Visa Store</h1>
+      <p className="text-xl text-gray-700 max-w-2xl mx-auto">متخصصون في صيانة الهواتف، فلاشها، وفك تشفيرها بأحدث التقنيات. نضمن خدمة سريعة واحترافية لجميع أنواع الهواتف الأندرويد والآيفون.</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-2xl font-semibold mb-4 text-primary">صيانة سريعة</h3>
+          <p>إصلاح الأعطال في وقت قياسي مع ضمان الجودة.</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-2xl font-semibold mb-4 text-primary">فلاش وتحديث</h3>
+          <p>ترقية نظام الهاتف وإزالة الفيروسات بكفاءة.</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-2xl font-semibold mb-4 text-primary">تتبع الطلبات</h3>
+          <p>تابع حالة صيانة هاتفك عبر الإنترنت بسهولة.</p>
+        </div>
+      </div>
+      {/* <img src="/assets/logo.png" alt="Visa Store Logo" className="mx-auto h-48 mt-12" /> */}
+    </div>
+  );
+}
+
+export default Home;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\client\src\pages\Track.jsx ===
+import MyPhones from '../components/MyPhones';
+
+function Track() {
+  return (
+    <div>
+      <h1 className="text-4xl font-bold mb-8 text-center text-primary">تتبع طلبات الصيانة</h1>
+      <MyPhones />
+    </div>
+  );
+}
+
+export default Track;
+

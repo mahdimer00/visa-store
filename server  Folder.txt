@@ -1,0 +1,124 @@
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\server\database\db.js ===
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+
+const dbPath = path.resolve(__dirname, 'visa_store.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) console.error('Database connection error:', err);
+  else console.log('Connected to SQLite database');
+});
+
+module.exports = db;
+
+=== C:\Users\fesas\OneDrive\Desktop\VISASTORE\visa-store\server\functions\api.js ===
+const express = require('express');
+const serverless = require('serverless-http');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const cors = require('cors');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Initialize SQLite database
+const dbPath = path.resolve(__dirname, '../../database/visa_store.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) console.error('Database connection error:', err);
+  else console.log('Connected to SQLite database');
+});
+
+// Create tickets table if not exists
+db.run(`
+  CREATE TABLE IF NOT EXISTS tickets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticketId TEXT UNIQUE,
+    phoneType TEXT,
+    phoneModel TEXT,
+    customerName TEXT,
+    customerPhone TEXT,
+    issue TEXT,
+    status TEXT,
+    errorReason TEXT
+  )
+`);
+
+// Generate ticket ID
+const generateTicketId = async () => {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT MAX(id) as maxId FROM tickets', (err, row) => {
+      if (err) return reject(err);
+      const nextId = (row.maxId || 0) + 1;
+      resolve(`VS-${nextId}`);
+    });
+  });
+};
+
+// Create ticket
+app.post('/tickets', async (req, res) => {
+  try {
+    const ticketId = await generateTicketId();
+    const { phoneType, phoneModel, customerName, customerPhone, issue, status, errorReason } = req.body;
+    db.run(
+      `INSERT INTO tickets (ticketId, phoneType, phoneModel, customerName, customerPhone, issue, status, errorReason)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ticketId, phoneType, phoneModel, customerName, customerPhone, issue, status, errorReason || ''],
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ ticketId });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get ticket by ID
+app.get('/tickets/:ticketId', (req, res) => {
+  const { ticketId } = req.params;
+  db.get('SELECT * FROM tickets WHERE ticketId = ?', [ticketId], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Ticket not found' });
+    res.json(row);
+  });
+});
+
+// Get all tickets or filtered by customerPhone or status
+app.get('/tickets', (req, res) => {
+  const { customerPhone, status } = req.query;
+  let query = 'SELECT * FROM tickets';
+  const params = [];
+  let whereClause = '';
+
+  if (customerPhone) {
+    whereClause += ' WHERE customerPhone = ?';
+    params.push(customerPhone);
+  } else if (status) {
+    whereClause += ' WHERE status = ?';
+    params.push(status);
+  }
+
+  query += whereClause;
+
+  db.all(query, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+// Update ticket status and errorReason
+app.put('/tickets/:ticketId', (req, res) => {
+  const { ticketId } = req.params;
+  const { status, errorReason } = req.body;
+  db.run(
+    'UPDATE tickets SET status = ?, errorReason = ? WHERE ticketId = ?',
+    [status, errorReason || '', ticketId],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Ticket updated' });
+    }
+  );
+});
+
+module.exports.handler = serverless(app);
+
